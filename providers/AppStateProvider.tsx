@@ -12,12 +12,41 @@ interface AppStateContextValue {
   beginProfileCreation: () => void;
 }
 
+const ENABLE_DEV_SHORTCUT = true;
+
+const DEV_PROFILE: UserProfile = {
+  id: 'dev-user',
+  name: 'Inferno Dev',
+  age: 28,
+  bio: 'Debugging the hottest app in town. Swipe right if you love rapid iteration and late-night deploys.',
+  kinks: [],
+  roles: ['Dominant'],
+  lookingFor: ['#Exploration'],
+  imageUrl: 'https://picsum.photos/seed/inferno-dev/400/600',
+  publicAlbum: ['https://picsum.photos/seed/inferno-dev-1/400/600'],
+  privateVault: [],
+  vaultAccessRequestsFrom: [],
+  vaultAccessGrantedTo: [],
+  videoUrl: undefined,
+  textPrompts: [],
+  audioPrompts: [],
+  isVerified: true,
+  badges: [],
+  lastActive: Date.now(),
+  height: 180,
+  relationshipType: 'Monogamous',
+  location: { lat: 37.7749, lon: -122.4194 },
+  isSpotlight: false,
+};
+
 const AppStateContext = createContext<AppStateContextValue | undefined>(undefined);
 
 export function AppStateProvider({ children }: PropsWithChildren) {
-  const [isAgeVerified, setIsAgeVerified] = useState(false);
-  const [currentScreen, setCurrentScreenState] = useState<Screen>(Screen.AGE_GATE);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isAgeVerified, setIsAgeVerified] = useState(ENABLE_DEV_SHORTCUT);
+  const [currentScreen, setCurrentScreenState] = useState<Screen>(
+    ENABLE_DEV_SHORTCUT ? Screen.SWIPE : Screen.AGE_GATE,
+  );
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(ENABLE_DEV_SHORTCUT ? DEV_PROFILE : null);
 
   const setCurrentScreen = useCallback((screen: Screen) => {
     setCurrentScreenState(screen);
