@@ -8,22 +8,48 @@ import { Platform } from 'react-native';
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
 
-export const Colors = {
+type ColorPalette = {
+  text: string;
+  background: string;
+  tint: string;
+  icon: string;
+  tabIconDefault: string;
+  tabIconSelected: string;
+  primaryButton: string;
+  primaryButtonShadow: string;
+  secondaryButton: string;
+  secondaryButtonBorder: string;
+};
+
+type Theme = {
+  light: ColorPalette;
+  dark: ColorPalette;
+};
+
+export const Colors: Theme = {
   light: {
     text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
+    background: '#EFF3F4',
+    tint: '#0a7ea4',
     icon: '#687076',
     tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    tabIconSelected: '#0a7ea4',
+    primaryButton: '#E4007C',
+    primaryButtonShadow: 'rgba(228, 0, 124, 0.3)',
+    secondaryButton: '#1C1924',
+    secondaryButtonBorder: '#282531',
   },
   dark: {
     text: '#ECEDEE',
     background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
+    tint: '#7FFFD4',
+    icon: '#ECEDEE',
     tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    tabIconSelected: '#7FFFD4',
+    primaryButton: '#E4007C',
+    primaryButtonShadow: 'rgba(228, 0, 124, 0.45)',
+    secondaryButton: '#282531',
+    secondaryButtonBorder: '#3C3747',
   },
 };
 
