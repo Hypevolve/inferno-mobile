@@ -19,6 +19,12 @@ type ColorPalette = {
   primaryButtonShadow: string;
   secondaryButton: string;
   secondaryButtonBorder: string;
+  primaryGradient: [string, string];
+  primaryGradientDisabled: [string, string];
+  backgroundGradient: [string, string];
+  surfaceGradient: [string, string];
+  surfaceBorder: string;
+  heroGlow: [string, string];
 };
 
 type Theme = {
@@ -38,6 +44,12 @@ export const Colors: Theme = {
     primaryButtonShadow: 'rgba(228, 0, 124, 0.3)',
     secondaryButton: '#1C1924',
     secondaryButtonBorder: '#282531',
+    primaryGradient: ['#FF3B91', '#8B1FA5'],
+    primaryGradientDisabled: ['#5C415D', '#41334F'],
+    backgroundGradient: ['#F8F2FF', '#EDE2FF'],
+    surfaceGradient: ['#FFFFFF', '#F3E9FF'],
+    surfaceBorder: 'rgba(140, 82, 255, 0.25)',
+    heroGlow: ['rgba(135, 62, 255, 0.35)', 'rgba(255, 255, 255, 0.0)'],
   },
   dark: {
     text: '#ECEDEE',
@@ -50,6 +62,12 @@ export const Colors: Theme = {
     primaryButtonShadow: 'rgba(228, 0, 124, 0.45)',
     secondaryButton: '#282531',
     secondaryButtonBorder: '#3C3747',
+    primaryGradient: ['#FF3B91', '#7217A6'],
+    primaryGradientDisabled: ['#3E3447', '#2E2738'],
+    backgroundGradient: ['#120724', '#070211'],
+    surfaceGradient: ['rgba(40, 27, 56, 0.92)', 'rgba(22, 12, 32, 0.92)'],
+    surfaceBorder: 'rgba(228, 0, 124, 0.22)',
+    heroGlow: ['rgba(228, 0, 124, 0.35)', 'rgba(77, 36, 134, 0.05)'],
   },
 };
 

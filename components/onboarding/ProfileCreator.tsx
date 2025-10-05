@@ -11,7 +11,9 @@ import {
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 
 import {
@@ -33,7 +35,10 @@ import {
 } from '@inferno/shared/types';
 
 import { InfernoButton } from '@/components/ui/inferno-button';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import { Fonts } from '@/constants/typography';
+import { Colors } from '@/constants/theme';
 import { useAppState } from '@/providers/AppStateProvider';
 
 const STEP_FLOW = [
@@ -72,11 +77,12 @@ function sample<T>(items: T[]): T {
 
 export function ProfileCreator({ existingProfile }: ProfileCreatorProps) {
   const { setUserProfile, setCurrentScreen } = useAppState();
+  const { height: windowHeight } = useWindowDimensions();
 
   const [step, setStep] = useState(0);
   const [name, setName] = useState(existingProfile?.name ?? '');
   const [age, setAge] = useState(existingProfile?.age?.toString() ?? '25');
-  const [height, setHeight] = useState(existingProfile?.height?.toString() ?? '175');
+  const [heightCm, setHeightCm] = useState(existingProfile?.height?.toString() ?? '175');
   const [relationshipType, setRelationshipType] = useState(
     existingProfile?.relationshipType ?? RELATIONSHIP_TYPE_OPTIONS[0],
   );
@@ -188,7 +194,7 @@ export function ProfileCreator({ existingProfile }: ProfileCreatorProps) {
   const canAdvance = useMemo(() => {
     switch (step) {
       case 0:
-        return name.trim().length > 1 && Number(age) >= 18 && Number(height) >= 120;
+        return name.trim().length > 1 && Number(age) >= 18 && Number(heightCm) >= 120;
       case 1:
         return Boolean(profileImage);
       case 2:
@@ -198,14 +204,10 @@ export function ProfileCreator({ existingProfile }: ProfileCreatorProps) {
       default:
         return true;
     }
-  }, [age, bio, height, kinks.length, lookingFor.length, name, profileImage, roles.length, step]);
+  }, [age, bio, heightCm, kinks.length, lookingFor.length, name, profileImage, roles.length, step]);
 
   const goNext = useCallback(() => {
     setStep((prev) => Math.min(prev + 1, TOTAL_STEPS - 1));
-  }, []);
-
-  const goBack = useCallback(() => {
-    setStep((prev) => Math.max(prev - 1, 0));
   }, []);
 
   const persistProfile = useCallback(() => {
@@ -236,7 +238,7 @@ export function ProfileCreator({ existingProfile }: ProfileCreatorProps) {
       isVerified: existingProfile?.isVerified ?? false,
       badges: existingProfile?.badges ?? Object.keys(BADGES),
       lastActive: now,
-      height: Number(height),
+      height: Number(heightCm),
       relationshipType,
       location: existingProfile?.location ?? DEFAULT_LOCATION,
       isSpotlight: existingProfile?.isSpotlight ?? false,
@@ -258,11 +260,21 @@ export function ProfileCreator({ existingProfile }: ProfileCreatorProps) {
     videoUrl,
     textPrompts,
     audioPrompts,
-    height,
+    heightCm,
     relationshipType,
     setCurrentScreen,
     setUserProfile,
   ]);
+
+  const handlePrimaryAction = useCallback(() => {
+    if (step < TOTAL_STEPS - 1) {
+      goNext();
+      return;
+    }
+    persistProfile();
+  }, [goNext, persistProfile, step]);
+
+  const continueDisabled = step < TOTAL_STEPS - 1 ? !canAdvance : false;
 
   const progressPercentage = ((step + 1) / TOTAL_STEPS) * 100;
 
@@ -304,8 +316,8 @@ export function ProfileCreator({ existingProfile }: ProfileCreatorProps) {
               <View style={styles.fieldBlock}>
                 <Text style={styles.label}>Height (cm)</Text>
                 <TextInput
-                  value={height}
-                  onChangeText={setHeight}
+                  value={heightCm}
+                  onChangeText={setHeightCm}
                   keyboardType="number-pad"
                   placeholder="180"
                   placeholderTextColor="#6E677D"
@@ -482,15 +494,15 @@ export function ProfileCreator({ existingProfile }: ProfileCreatorProps) {
                   <Text style={styles.reviewPlaceholderText}>No photo yet</Text>
                 </View>
               )}
-              <Text style={styles.reviewName}>
+              <Text style={styles.sectionTitle}>
                 {name || 'Inferno member'}
                 {`, ${age || '--'}`}
               </Text>
               <Text style={styles.reviewMeta}>
-                {relationshipType} • {height || '--'}cm
+                {relationshipType} • {heightCm || '--'}cm
               </Text>
               <Text style={styles.reviewBio}>{bio}</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.reviewChips}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingTop: 6 }}>
                 {lookingFor.map((tag) => (
                   <View key={tag} style={styles.reviewChip}>
                     <Text style={styles.reviewChipText}>{tag}</Text>
@@ -520,48 +532,46 @@ export function ProfileCreator({ existingProfile }: ProfileCreatorProps) {
     </Modal>
   );
 
+  const theme = Colors.dark;
+
   return (
-    <View style={styles.containerRoot}>
-      <View style={styles.appBar}>
-        <Text style={styles.stepBadge}>{`Step ${step + 1} of ${TOTAL_STEPS}`}</Text>
-        <Text style={styles.appBarTitle}>{STEP_FLOW[step].title}</Text>
-        <Text style={styles.appBarSubtitle}>{STEP_FLOW[step].subtitle}</Text>
-        <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${progressPercentage}%` }]} />
-        </View>
-      </View>
+    <LinearGradient colors={theme.backgroundGradient} style={styles.gradient}>
+      <SafeAreaView style={[styles.safeArea, { minHeight: windowHeight }]}> 
+        <View style={styles.containerRoot}>
+          <View style={styles.appBar}>
+            <Text style={styles.stepBadge}>{`Step ${step + 1} of ${TOTAL_STEPS}`}</Text>
+            <Text style={styles.appBarTitle}>{STEP_FLOW[step].title}</Text>
+            <Text style={styles.appBarSubtitle}>{STEP_FLOW[step].subtitle}</Text>
+            <View style={styles.progressBar}>
+              <View style={[styles.progressFill, { width: `${progressPercentage}%` }]} />
+            </View>
+          </View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.flex}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
-      >
-        <ScrollView
-          style={styles.flex}
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {renderStep()}
-        </ScrollView>
-      </KeyboardAvoidingView>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={styles.flex}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+          >
+            <ScrollView
+              style={styles.flex}
+              contentContainerStyle={styles.scrollContainer}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              {renderStep()}
+            </ScrollView>
+          </KeyboardAvoidingView>
 
-      <View style={styles.footer}>
-        <InfernoButton
-          title="Back"
-          variant="secondary"
-          onPress={goBack}
-          style={styles.footerButton}
-          disabled={step === 0}
-        />
-        {step < TOTAL_STEPS - 1 ? (
-          <InfernoButton title="Next" onPress={goNext} style={styles.footerButton} disabled={!canAdvance} />
-        ) : (
-          <InfernoButton title="Launch profile" onPress={persistProfile} style={styles.footerButton} />
-        )}
-      </View>
+          <View style={styles.footer}>
+            <InfernoButton
+              title="Continue"
+              onPress={handlePrimaryAction}
+              style={styles.continueButton}
+              disabled={continueDisabled}
+            />
+          </View>
 
-      {renderSheet(
+          {renderSheet(
         relationshipSheet,
         () => setRelationshipSheet(false),
         'Relationship energy',
@@ -581,7 +591,7 @@ export function ProfileCreator({ existingProfile }: ProfileCreatorProps) {
         )),
       )}
 
-      {renderSheet(
+          {renderSheet(
         kinkSheet,
         () => setKinkSheet(false),
         'Select kinks',
@@ -599,7 +609,7 @@ export function ProfileCreator({ existingProfile }: ProfileCreatorProps) {
         }),
       )}
 
-      {renderSheet(
+          {renderSheet(
         promptSheetIndex !== null,
         () => setPromptSheetIndex(null),
         'Choose a prompt',
@@ -619,47 +629,56 @@ export function ProfileCreator({ existingProfile }: ProfileCreatorProps) {
             </Text>
           </Pressable>
         )),
-      )}
-    </View>
+          )}
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
   flex: {
     flex: 1,
   },
   containerRoot: {
     flex: 1,
-    backgroundColor: '#0E0B14',
+    paddingHorizontal: 24,
+    paddingBottom: 32,
   },
   appBar: {
-    paddingHorizontal: 24,
-    paddingTop: Platform.select({ ios: 12, default: 24 }),
-    paddingBottom: 12,
-    gap: 4,
+    paddingTop: Platform.select({ ios: 16, default: 28 }),
+    paddingBottom: 16,
+    gap: 6,
   },
   stepBadge: {
     fontFamily: Fonts.poppinsSemiBold,
     fontSize: 12,
-    color: '#8A84A1',
+    color: '#B9B3CF',
     textTransform: 'uppercase',
   },
   appBarTitle: {
     fontFamily: Fonts.poppinsExtraBold,
-    fontSize: 24,
+    fontSize: 26,
     color: '#FFFFFF',
   },
   appBarSubtitle: {
     fontFamily: Fonts.poppinsRegular,
     fontSize: 14,
-    color: '#B2AEC5',
-    lineHeight: 20,
+    color: '#BDB3D7',
+    lineHeight: 22,
   },
   progressBar: {
-    marginTop: 12,
-    height: 4,
+    marginTop: 16,
+    height: 6,
     borderRadius: 999,
-    backgroundColor: '#241F33',
+    backgroundColor: 'rgba(255,255,255,0.05)',
     overflow: 'hidden',
   },
   progressFill: {
@@ -668,17 +687,18 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingVertical: 24,
+    gap: 24,
     paddingBottom: Platform.select({ ios: 160, default: 140 }),
   },
   card: {
-    backgroundColor: '#151225',
-    borderRadius: 28,
-    padding: 22,
+    backgroundColor: 'rgba(15, 10, 24, 0.9)',
+    borderRadius: 26,
+    paddingVertical: 26,
+    paddingHorizontal: 22,
     borderWidth: 1,
-    borderColor: '#221E31',
-    marginBottom: 24,
-    gap: 16,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    gap: 18,
     width: '100%',
     maxWidth: 360,
   },
@@ -690,7 +710,7 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     fontFamily: Fonts.poppinsRegular,
     fontSize: 14,
-    color: '#B2AEC5',
+    color: '#ACA1C6',
     lineHeight: 20,
   },
   fieldGrid: {
@@ -705,17 +725,17 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: Fonts.poppinsSemiBold,
     fontSize: 13,
-    color: '#CFCBD9',
+    color: '#CEC4E6',
   },
   input: {
-    backgroundColor: '#221E31',
-    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: Platform.select({ ios: 14, default: 12 }),
     color: '#FFFFFF',
     fontFamily: Fonts.poppinsRegular,
     borderWidth: 1,
-    borderColor: '#2E2940',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   selectInput: {
     marginTop: 24,
@@ -736,15 +756,15 @@ const styles = StyleSheet.create({
   },
   textArea: {
     minHeight: 160,
-    backgroundColor: '#221E31',
-    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: 18,
     paddingHorizontal: 18,
     paddingTop: 18,
     paddingBottom: 24,
     color: '#FFFFFF',
     fontFamily: Fonts.poppinsRegular,
     borderWidth: 1,
-    borderColor: '#2E2940',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     textAlignVertical: 'top',
   },
   helperCounter: {
@@ -771,16 +791,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   chipInactive: {
-    borderColor: '#2E2940',
-    backgroundColor: '#1A1628',
+    borderColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(255,255,255,0.03)',
   },
   chipActive: {
-    borderColor: '#E4007C',
-    backgroundColor: '#E4007C',
+    borderColor: 'rgba(228,0,124,0.5)',
+    backgroundColor: 'rgba(228,0,124,0.16)',
   },
   chipText: {
     fontFamily: Fonts.poppinsSemiBold,
-    color: '#CFCBD9',
+    color: '#E8E1FF',
     fontSize: 13,
     textAlign: 'center',
   },
@@ -802,10 +822,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   kinkCard: {
-    backgroundColor: '#1F1B2C',
-    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#2E2940',
+    borderColor: 'rgba(255,255,255,0.07)',
     padding: 16,
     gap: 12,
   },
@@ -831,16 +851,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   pillInactive: {
-    backgroundColor: '#1A1628',
-    borderColor: '#2E2940',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderColor: 'rgba(255,255,255,0.07)',
   },
   pillActive: {
-    backgroundColor: '#E4007C',
-    borderColor: '#E4007C',
+    backgroundColor: 'rgba(228,0,124,0.18)',
+    borderColor: 'rgba(228,0,124,0.5)',
   },
   pillText: {
     fontFamily: Fonts.poppinsSemiBold,
-    color: '#B2AEC5',
+    color: '#DCD2F0',
   },
   pillTextActive: {
     color: '#FFFFFF',
@@ -848,13 +868,13 @@ const styles = StyleSheet.create({
   emptyHint: {
     fontFamily: Fonts.poppinsRegular,
     fontSize: 13,
-    color: '#6E677D',
+    color: '#A69EBE',
   },
   promptSheet: {
-    backgroundColor: '#1F1B2C',
-    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#2E2940',
+    borderColor: 'rgba(255,255,255,0.07)',
     padding: 16,
     gap: 12,
     marginTop: 12,
@@ -881,19 +901,19 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: '#221E31',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     color: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#2E2940',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     fontFamily: Fonts.poppinsRegular,
     textAlignVertical: 'top',
     width: '100%',
   },
   mediaHero: {
     borderRadius: 28,
-    backgroundColor: '#1A1628',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
-    borderColor: '#2E2940',
+    borderColor: 'rgba(255,255,255,0.07)',
     overflow: 'hidden',
     height: 280,
     justifyContent: 'center',
@@ -915,47 +935,41 @@ const styles = StyleSheet.create({
   },
   mediaPlaceholderSubtitle: {
     fontFamily: Fonts.poppinsRegular,
-    color: '#6E677D',
+    color: '#A69EBE',
     fontSize: 13,
   },
   actionRow: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     gap: 12,
     width: '100%',
-    justifyContent: 'center',
   },
   flexButton: {
-    flex: 1,
-    maxWidth: 160,
+    width: '100%',
   },
   footer: {
-    flexDirection: 'row',
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    gap: 12,
-    backgroundColor: '#0E0B14',
+    paddingTop: 16,
+    paddingBottom: Platform.select({ ios: 24, default: 24 }),
   },
-  footerButton: {
-    flex: 1,
-    maxWidth: 180,
+  continueButton: {
+    width: '100%',
   },
   sheetBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(5, 4, 11, 0.8)',
     justifyContent: 'flex-end',
   },
   sheetCard: {
-    backgroundColor: '#151225',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: Platform.select({ ios: 40, default: 28 }),
-    gap: 16,
-    maxHeight: '85%',
+    backgroundColor: 'rgba(15, 10, 24, 0.96)',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingHorizontal: 22,
+    paddingTop: 24,
+    paddingBottom: Platform.select({ ios: 42, default: 30 }),
+    gap: 18,
+    maxHeight: '78%',
     alignSelf: 'center',
     width: '100%',
-    maxWidth: 380,
+    maxWidth: 372,
   },
   sheetTitle: {
     fontFamily: Fonts.poppinsBold,
@@ -966,17 +980,17 @@ const styles = StyleSheet.create({
   sheetOption: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#2E2940',
+    borderColor: 'rgba(255,255,255,0.07)',
     padding: 16,
     marginBottom: 12,
   },
   sheetOptionActive: {
-    borderColor: '#E4007C',
-    backgroundColor: 'rgba(228,0,124,0.12)',
+    borderColor: 'rgba(228,0,124,0.5)',
+    backgroundColor: 'rgba(228,0,124,0.16)',
   },
   sheetOptionText: {
     fontFamily: Fonts.poppinsSemiBold,
-    color: '#CFCBD9',
+    color: '#D5CCE9',
     fontSize: 15,
   },
   sheetOptionTextActive: {
@@ -999,37 +1013,29 @@ const styles = StyleSheet.create({
     height: 240,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#2E2940',
-    backgroundColor: '#1A1628',
+    borderColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: 'rgba(255,255,255,0.03)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   reviewPlaceholderText: {
     fontFamily: Fonts.poppinsSemiBold,
-    color: '#6E677D',
-  },
-  reviewName: {
-    fontFamily: Fonts.poppinsBold,
-    fontSize: 20,
-    color: '#FFFFFF',
+    color: '#A69EBE',
   },
   reviewMeta: {
     fontFamily: Fonts.poppinsRegular,
     fontSize: 14,
-    color: '#B2AEC5',
+    color: '#BBB1D3',
   },
   reviewBio: {
     fontFamily: Fonts.poppinsRegular,
     fontSize: 14,
-    color: '#CFCBD9',
+    color: '#D4CBEB',
     textAlign: 'center',
   },
-  reviewChips: {
-    paddingTop: 6,
-  },
   reviewChip: {
-    backgroundColor: '#E4007C',
-    paddingHorizontal: 16,
+    backgroundColor: 'rgba(228,0,124,0.18)',
+    paddingHorizontal: 18,
     paddingVertical: 6,
     borderRadius: 999,
     marginRight: 8,

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { SafeAreaView, View, Text, StyleSheet } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, useWindowDimensions } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -9,10 +10,12 @@ import { useAppState } from '@/providers/AppStateProvider';
 import { InfernoButton } from '@/components/ui/inferno-button';
 import { Fonts } from '@/constants/typography';
 import { ProfileCreator } from '@/components/onboarding/ProfileCreator';
+import { Colors } from '@/constants/theme';
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const { currentScreen, setCurrentScreen, userProfile } = useAppState();
+  const { height } = useWindowDimensions();
 
   useEffect(() => {
     if (
@@ -28,30 +31,41 @@ export default function OnboardingScreen() {
     return <ProfileCreator existingProfile={userProfile} />;
   }
 
+  const theme = Colors.dark;
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.iconContainer}>
-          <Ionicons name="flame" size={96} color="#E4007C" />
+    <LinearGradient colors={theme.backgroundGradient} style={styles.gradient}>
+      <SafeAreaView style={[styles.safeArea, { minHeight: height }]}> 
+        <View style={styles.container}>
+          <View style={styles.card}>
+            <View style={styles.cardContent}>
+              <Ionicons name="flame" size={36} color="#FFFFFF" style={styles.icon} />
+              <Text style={styles.title}>Slide into the heat</Text>
+              <Text style={styles.subtitle}>
+                Inferno connects confident adults ready to flirt harder and find playmates who match their vibe.
+              </Text>
+
+              <InfernoButton
+                title="Create my profile"
+                onPress={() => setCurrentScreen(Screen.PROFILE_CREATOR)}
+                style={styles.cta}
+              />
+              <Text style={styles.helperText}>Already have one? Head to matches from the tabs.</Text>
+            </View>
+          </View>
         </View>
-        <Text style={styles.title}>Slide into the heat</Text>
-        <Text style={styles.subtitle}>
-          We match confident, curious adults looking to flirt harder, play smarter, and explore without judgement.
-        </Text>
-        <InfernoButton
-          title="Create My Profile"
-          onPress={() => setCurrentScreen(Screen.PROFILE_CREATOR)}
-          style={styles.primaryButton}
-        />
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   safeArea: {
     flex: 1,
-    backgroundColor: '#110F17',
+    backgroundColor: 'transparent',
   },
   container: {
     flex: 1,
@@ -59,38 +73,46 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 24,
   },
-  iconContainer: {
-    width: 128,
-    height: 128,
-    borderRadius: 64,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#1C1924',
+  card: {
+    width: '100%',
+    maxWidth: 360,
+    borderRadius: 28,
     borderWidth: 1,
-    borderColor: '#282531',
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 12 },
-    marginBottom: 32,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(15, 10, 24, 0.88)',
+  },
+  cardContent: {
+    borderRadius: 28,
+    paddingVertical: 28,
+    paddingHorizontal: 24,
+    gap: 20,
+    alignItems: 'center',
+  },
+  icon: {
+    marginBottom: 8,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontFamily: Fonts.poppinsExtraBold,
     color: '#FFFFFF',
     textAlign: 'center',
+    lineHeight: 34,
   },
   subtitle: {
-    marginTop: 16,
-    fontSize: 16,
+    fontSize: 15,
     lineHeight: 24,
-    color: '#CFCBD9',
+    color: '#E1D8FF',
+    fontFamily: Fonts.poppinsRegular,
+    textAlign: 'center',
+  },
+  cta: {
+    width: '100%',
+  },
+  helperText: {
+    fontSize: 12,
+    color: '#B3A4D4',
     textAlign: 'center',
     fontFamily: Fonts.poppinsRegular,
-  },
-  primaryButton: {
-    marginTop: 40,
-    width: '100%',
   },
   placeholderContainer: {
     flex: 1,

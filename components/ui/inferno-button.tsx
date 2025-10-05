@@ -24,9 +24,6 @@ type InfernoButtonProps = PressableProps & {
   textStyle?: StyleProp<TextStyle>;
 };
 
-const PRIMARY_GRADIENT = ['#FF3B91', '#E4007C'] as const;
-const PRIMARY_GRADIENT_DISABLED = ['#6C6A71', '#6C6A71'] as const;
-
 export function InfernoButton({
   title,
   variant = 'primary',
@@ -42,7 +39,7 @@ export function InfernoButton({
     <Pressable disabled={disabled} {...rest}>
       {({ pressed }) => {
         if (variant === 'primary') {
-          const gradientColors = disabled ? PRIMARY_GRADIENT_DISABLED : PRIMARY_GRADIENT;
+          const gradientColors = disabled ? theme.primaryGradientDisabled : theme.primaryGradient;
           return (
             <LinearGradient
               colors={gradientColors}
@@ -60,17 +57,30 @@ export function InfernoButton({
           );
         }
 
+        const secondaryBackground = disabled
+          ? 'rgba(255,255,255,0.04)'
+          : pressed
+            ? 'rgba(255,255,255,0.12)'
+            : 'rgba(255,255,255,0.08)';
+
         return (
           <View
             style={[
               styles.secondary,
-              { backgroundColor: theme.secondaryButton, borderColor: theme.secondaryButtonBorder },
-              pressed && !disabled && styles.secondaryPressed,
+              { backgroundColor: secondaryBackground, borderColor: theme.secondaryButtonBorder },
               disabled && styles.secondaryDisabled,
               style as StyleProp<ViewStyle>,
             ]}
           >
-            <Text style={[styles.secondaryText, { color: theme.text }, textStyle]}>{title}</Text>
+            <Text
+              style={[
+                styles.secondaryText,
+                { color: disabled ? 'rgba(255,255,255,0.55)' : '#FFFFFF' },
+                textStyle,
+              ]}
+            >
+              {title}
+            </Text>
           </View>
         );
       }}
@@ -99,9 +109,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  secondaryPressed: {
-    transform: [{ scale: 0.98 }],
   },
   secondaryDisabled: {
     opacity: 0.6,

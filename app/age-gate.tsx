@@ -9,6 +9,7 @@ import { useRouter } from 'expo-router';
 import { useAppState } from '@/providers/AppStateProvider';
 import { InfernoButton } from '@/components/ui/inferno-button';
 import { Fonts } from '@/constants/typography';
+import { Colors } from '@/constants/theme';
 
 export default function AgeGateScreen() {
   const [isChecked, setIsChecked] = useState(false);
@@ -30,53 +31,40 @@ export default function AgeGateScreen() {
     router.replace('/onboarding');
   };
 
+  const theme = Colors.dark;
+
   return (
-    <LinearGradient colors={['#1A1625', '#110F17']} style={styles.gradient}>
+    <LinearGradient colors={theme.backgroundGradient} style={styles.gradient}>
       <SafeAreaView style={[styles.safeArea, { minHeight: height }]}> 
         <View style={styles.container}>
           <View style={styles.card}>
-            <View style={styles.headerStack}>
-              <View style={styles.iconCircle}>
+            <View style={styles.cardContent}>
+              <View style={styles.heroIconWrapper}>
                 <Ionicons name="flame" size={36} color="#FFFFFF" />
               </View>
               <Text style={styles.title}>Ready to play with fire?</Text>
-              <Text style={styles.subtitle}>Inferno is an after-dark playground for bold, consenting adults. Confirm your age and step past the velvet rope.</Text>
-            </View>
+              <Text style={styles.subtitle}>
+                Confirm you’re 18+ to keep Inferno a consent-first space for grown-ups only.
+              </Text>
 
-            <View style={styles.divider} />
+              <View style={styles.checkboxRow}>
+                <Checkbox
+                  value={isChecked}
+                  onValueChange={setIsChecked}
+                  color={isChecked ? theme.primaryButton : '#3C3550'}
+                  style={styles.checkbox}
+                />
+                <Text style={styles.checkboxLabel}>I confirm I&apos;m 18+ and down for an adult-only experience.</Text>
+              </View>
 
-            <View style={styles.infoList}>
-              <View style={styles.infoRow}>
-                <Ionicons name="lock-closed" size={18} color="#CFCBD9" />
-                <Text style={styles.infoText}>Keep it discreet with private modes and vaulted media.</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Ionicons name="sparkles" size={18} color="#CFCBD9" />
-                <Text style={styles.infoText}>Match with thrill-seekers who crave the same heat you do.</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Ionicons name="alert-circle" size={18} color="#CFCBD9" />
-                <Text style={styles.infoText}>Strictly 18+. Your consent keeps the experience electric.</Text>
-              </View>
-            </View>
-
-            <View style={styles.checkboxRow}>
-              <Checkbox
-                value={isChecked}
-                onValueChange={setIsChecked}
-                color={isChecked ? '#E4007C' : undefined}
-                style={styles.checkbox}
+              <InfernoButton
+                title="Enter Inferno"
+                disabled={!isChecked}
+                onPress={handleEnter}
+                style={styles.button}
               />
-              <Text style={styles.checkboxLabel}>I confirm I am 18+ and consent to view adult content.</Text>
+              <Text style={styles.helperText}>We keep it respectful. You stay in control.</Text>
             </View>
-
-            <InfernoButton
-              title="Continue"
-              disabled={!isChecked}
-              onPress={handleEnter}
-              style={styles.button}
-            />
-            <Text style={styles.helperText}>Treat everyone with respect and keep consent front and center.</Text>
           </View>
         </View>
       </SafeAreaView>
@@ -95,70 +83,61 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 24,
+    alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 32,
   },
   card: {
-    backgroundColor: '#1C1924',
-    borderRadius: 20,
-    padding: 24,
+    width: '100%',
+    maxWidth: 360,
+    borderRadius: 28,
     borderWidth: 1,
-    borderColor: '#282531',
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    shadowOffset: {
-      width: 0,
-      height: 12,
-    },
-    elevation: 8,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(15, 10, 24, 0.88)',
   },
-  headerStack: {
-    alignItems: 'center',
-    gap: 14,
+  cardContent: {
+    borderRadius: 28,
+    paddingVertical: 28,
+    paddingHorizontal: 24,
+    gap: 20,
   },
-  iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#E4007C',
-    justifyContent: 'center',
+  heroIconWrapper: {
     alignItems: 'center',
-    shadowColor: '#E4007C',
-    shadowOpacity: 0.45,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 10,
   },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontFamily: Fonts.poppinsExtraBold,
     color: '#FFFFFF',
     textAlign: 'center',
+    lineHeight: 34,
   },
   subtitle: {
     fontSize: 15,
-    lineHeight: 22,
-    color: '#CFCBD9',
+    lineHeight: 24,
+    color: '#E1D8FF',
     fontFamily: Fonts.poppinsRegular,
     textAlign: 'center',
   },
-  divider: {
-    height: 1,
-    backgroundColor: '#2E2837',
-    marginVertical: 20,
-  },
   infoList: {
-    gap: 12,
-    marginBottom: 16,
+    gap: 16,
+    marginTop: 12,
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
+  },
+  infoIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(255, 59, 145, 0.18)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   infoText: {
     flex: 1,
-    color: '#CFCBD9',
+    color: '#D9D0FF',
     fontSize: 14,
     lineHeight: 20,
     fontFamily: Fonts.poppinsRegular,
@@ -166,7 +145,8 @@ const styles = StyleSheet.create({
   checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    gap: 12,
+    marginTop: 8,
   },
   checkbox: {
     width: 20,
@@ -174,19 +154,19 @@ const styles = StyleSheet.create({
   },
   checkboxLabel: {
     flex: 1,
-    marginLeft: 12,
-    fontSize: 14,
-    color: '#F0F0F0',
+    fontSize: 13,
+    color: '#EDE3FF',
     fontFamily: Fonts.poppinsRegular,
+    lineHeight: 20,
   },
   button: {
     width: '100%',
+    marginTop: 20,
   },
   helperText: {
     fontSize: 12,
-    color: '#716C7F',
+    color: '#B3A4D4',
     textAlign: 'center',
-    marginTop: 12,
     fontFamily: Fonts.poppinsRegular,
   },
 });
